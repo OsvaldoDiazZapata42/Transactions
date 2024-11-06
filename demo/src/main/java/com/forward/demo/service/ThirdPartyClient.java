@@ -5,6 +5,7 @@ import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.apache.wss4j.common.crypto.Merlin;
 import org.apache.wss4j.dom.WSConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -58,24 +59,39 @@ public class ThirdPartyClient {
     private void configureWSSecurity(Client client) {
         Map<String, Object> outProps = new HashMap<>();
 
-        // WS-Security Actions: UsernameToken, Signature, and Encryption
-        outProps.put(WSHandlerConstants.ACTION, 
-                     WSHandlerConstants.USERNAME_TOKEN + " " + WSHandlerConstants.SIGNATURE + " " + WSHandlerConstants.ENCRYPT);
-        
-        // UsernameToken properties
+        // Define WS-Security actions
+        outProps.put(WSHandlerConstants.ACTION,
+                     WSHandlerConstants.TIMESTAMP + " " + 
+                     WSHandlerConstants.USERNAME_TOKEN + " " +
+                     WSHandlerConstants.SIGNATURE + " " + 
+                     WSHandlerConstants.ENCRYPT);
+
+        // UsernameToken setup
         outProps.put(WSHandlerConstants.USER, wsUsername);
-        outProps.put(WSHandlerConstants.PASSWORD_TYPE, WSConstants.PW_TEXT);
         outProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, UsernamePasswordCallbackHandler.class.getName());
 
-        // Keystore properties for signing and encryption
-        outProps.put(WSHandlerConstants.SIG_PROP_FILE, "application.properties");
-        outProps.put(WSHandlerConstants.ENC_PROP_FILE, "J%xY1eaPjnug\\v");
-
-        // Alias settings for signing and encryption
+        // Directly specify keystore properties
+        outProps.put(WSHandlerConstants.SIG_KEY_ID, "DirectReference");
         outProps.put(WSHandlerConstants.SIGNATURE_USER, signatureAlias);
+        outProps.put(WSHandlerConstants.ENC_KEY_ID, "DirectReference");
         outProps.put(WSHandlerConstants.ENCRYPTION_USER, encryptionAlias);
 
-        // Attach the WS-Security interceptor
+        // Add keystore details directly (without using client-crypto.properties)
+        Map<String, String> cryptoProps = new HashMap<>();
+        cryptoProps.put("org.apache.ws.security.crypto.provider", Merlin.class.getName());
+        cryptoProps.put("org.apache.ws.security.crypto.merlin.keystore.type", "pkcs12");
+        cryptoProps.put("org.apache.ws.security.crypto.merlin.keystore.password", keystorePassword);
+        cryptoProps.put("org.apache.ws.security.crypto.merlin.keystore.file", keystoreFile);
+
+        // Pass the crypto properties directly to CXF
+        outProps.put(WSHandlerConstants.SIG_PROP_REF_ID, "cryptoProps");
+        outProps.put(WSHandlerConstants.ENC_PROP_REF_ID, "cryptoProps");
+        outProps.put("cryptoProps", cryptoProps);
+
+        // Define the signature and encryption algorithms
+        //outProps.put(WSHandlerConstants.SIG_ALGO, WSConstants.RSA_SHA512);
+        outProps.put(WSHandlerConstants.ENC_SYM_ALGO, WSConstants.AES_256); // AES-256 encryption for the message body
+
         WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
         client.getEndpoint().getOutInterceptors().add(wssOut);
     }
