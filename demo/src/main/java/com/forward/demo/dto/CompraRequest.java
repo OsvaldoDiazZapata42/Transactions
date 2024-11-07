@@ -1,10 +1,9 @@
 package com.forward.demo.dto;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.*;
 
-@XmlRootElement(name = "compraProcesarSolicitud", namespace = "https://www.txstestrbm.com:9990/CompraElectronica/Compra")
+//@XmlRootElement(name = "compraProcesarSolicitud", namespace = "https://www.txstestrbm.com:9990/CompraElectronica/Compra")
+@XmlRootElement(name = "CompraRequest")
 @XmlType(propOrder = { "cabeceraSolicitud", "idPersona", "infoMedioPago", "infoCompra", "infoPersona", "infoAdicional" })
 public class CompraRequest {
 

@@ -1,7 +1,6 @@
 package com.forward.demo.dto;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.*;
 
 @XmlType(propOrder = { "idTarjetaCredito" })
 public class InfoMedioPago {

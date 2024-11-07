@@ -7,26 +7,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.forward.demo.dto.CompraRequest;
-import com.forward.demo.service.ThirdPartyClient;
+import com.forward.demo.service.MyWebServiceClient;
 
 @RestController
 @RequestMapping("/api")
 public class TransactionController {
 
-    private final ThirdPartyClient thirdPartyClient;
+    private final MyWebServiceClient client;
 
-    public TransactionController(ThirdPartyClient thirdPartyClient) {
-         this.thirdPartyClient = thirdPartyClient;
+    public TransactionController(MyWebServiceClient client) {
+        this.client = client;
     }
 
     @PostMapping("/sendTransaction")
-    public ResponseEntity<String> sendTransaction(@RequestBody CompraRequest  transactionData) {
+    public ResponseEntity<Object> sendTransaction(@RequestBody CompraRequest  transactionData) {
         try {
             // Convert TransactionData to XML format
             //String xmlData = JsonToXmlConverter.convertRecordToXml(transactionData);
 
-            String response = thirdPartyClient.sendToThirdParty(transactionData);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok().body(client.sendRequest(transactionData));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error sending transaction: " + e.getMessage());
         }
